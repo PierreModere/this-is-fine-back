@@ -1,0 +1,17 @@
+{
+  "name": "socketioserver",
+  "version": "1.0.0",
+  "description": "back socketio server for our game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socketio": "^1.0.0",
+    "ws": "^7.1.2"
+  }
+}
