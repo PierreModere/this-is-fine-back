@@ -6,10 +6,10 @@ const app = express();
 const port = 1234;
 
 const server = createServer(app);
-const wss = new WebSocket.Server({ server });
 
 const maxClients = 4;
 let rooms = {};
+const wss = new WebSocket.Server({ server });
 
 wss.on("connection", function connection(ws) {
   ws.on("message", function message(data) {
@@ -23,6 +23,9 @@ wss.on("connection", function connection(ws) {
         break;
       case "create":
         create(params);
+        break;
+      case "delete":
+        deleteRoom(params);
         break;
       case "join":
         join(params);
@@ -68,6 +71,11 @@ wss.on("connection", function connection(ws) {
       params: { action: null, data: `${room}` },
     };
     ws.send(JSON.stringify(json));
+  }
+
+  function deleteRoom(params) {
+    const room = params.code;
+    delete rooms[room];
   }
 
   function join(params) {
