@@ -61,14 +61,18 @@ wss.on("connection", function connection(ws) {
   }
 
   function create(params) {
-    const room = genKey(5);
+    const room = genKey(4);
     rooms[room] = [ws];
     ws["room"] = room;
     generalInformation(ws);
     console.log(`Room with pin code ${room} created!`);
     const json = {
       type: "createdRoom",
-      params: { action: null, data: `${room}` },
+      params: {
+        data: {
+          message: `${room}`,
+        },
+      },
     };
     ws.send(JSON.stringify(json));
   }
@@ -89,14 +93,17 @@ wss.on("connection", function connection(ws) {
       console.warn(`Room ${room} is full!`);
       return;
     }
-
     rooms[room].push(ws);
     ws["room"] = room;
     generalInformation(ws);
 
     const json = {
       type: "joinedRoom",
-      params: { action: null, data: `${room}` },
+      params: {
+        data: {
+          message: `${room}`,
+        },
+      },
     };
     ws.send(JSON.stringify(json));
   }
@@ -127,23 +134,42 @@ function genKey(length) {
   return result;
 }
 
-function generalInformation(ws) {
-  let obj;
-  if (ws["room"] === undefined)
-    obj = {
-      type: "info",
-      params: {
-        room: ws["room"],
-        "no-clients": rooms[ws["room"]].length,
+function sendPlayersList(roomPincode) {
+  const json = {
+    type: "receivedPlayersList",
+    params: {
+      data: {
+        clientsList: [],
       },
-    };
-  else
-    obj = {
-      type: "info",
-      params: {
-        room: "no room",
-      },
-    };
+    },
+  };
 
-  // ws.send(JSON.stringify(obj));
+  rooms[roomPincode].forEach(({ id, chosenCharacter }) => {
+    const clientData = {
+      id: id,
+      chosenCharacter: chosenCharacter,
+    };
+    json.params.data.clientsList.push(clientData);
+  });
+  rooms[roomPincode].forEach((client) => client.send(JSON.stringify(json)));
+}
+
+function sendPlayerID(ws) {
+  if (ws.id != null && ws.id != "") {
+    const json = {
+      type: "getMyPlayerID",
+      params: {
+        data: {
+          message: `${ws.id}`,
+        },
+      },
+    };
+    ws.send(JSON.stringify(json));
+  }
+}
+
+function generalInformation(ws) {
+  ws.id = rooms[ws["room"]].length;
+  sendPlayerID(ws);
+  sendPlayersList(ws["room"]);
 }
