@@ -63,6 +63,7 @@ wss.on("connection", function connection(ws) {
   function create(params) {
     const room = genKey(4);
     rooms[room] = [ws];
+    rooms[room].gameState = "gameConfiguration";
     ws["room"] = room;
     generalInformation(ws);
     console.log(`Room with pin code ${room} created!`);
@@ -80,6 +81,7 @@ wss.on("connection", function connection(ws) {
   function deleteRoom(params) {
     const room = params.code;
     delete rooms[room];
+    console.log(`Room with pin code ${room} deleted!`);
   }
 
   function join(params) {
@@ -109,15 +111,16 @@ wss.on("connection", function connection(ws) {
   }
 
   function leave(params) {
-    const room = ws.room;
+    const room = params.code;
     rooms[room] = rooms[room].filter((so) => so !== ws);
     ws["room"] = undefined;
-
+    sendPlayersList(room);
     if (rooms[room].length == 0) close(room);
   }
 
   function close(room) {
-    rooms = rooms.filter((key) => key !== room);
+    delete rooms[room];
+    console.log(`Room with pin code ${room} deleted!`);
   }
 });
 
