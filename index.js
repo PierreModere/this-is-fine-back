@@ -1,11 +1,29 @@
 const express = require("express");
 const { createServer } = require("http");
 const WebSocket = require("ws");
+const fs = require("node:fs");
 
 const app = express();
 const port = 1234;
 
-const server = createServer(app);
+var server;
+try {
+  fileContents = fs.readFileSync(
+    "/etc/letsencrypt/live/this-is-fine-server.me/privkey.pem"
+  );
+  console.log("is secure");
+  const options = {
+    key: fs.readFileSync(
+      "/etc/letsencrypt/live/this-is-fine-server.me/privkey.pem"
+    ),
+    cert: fs.readFileSync(
+      "/etc/letsencrypt/live/this-is-fine-server.me/cert.pem"
+    ),
+  };
+  server = createServer(options, app);
+} catch (err) {
+  server = createServer(app);
+}
 
 const maxClients = 4;
 let rooms = {};
