@@ -66,18 +66,6 @@ wss.on("connection", function connection(ws) {
     }
   }
 
-  var int = 0;
-
-  function IncrementInteger() {
-    int++;
-    // rooms["WSYQ7"].forEach((cl) => cl.send(JSON.stringify(int)));
-    const json = {
-      type: "action",
-      params: { action: "IncrementInteger", data: "message" },
-    };
-    rooms["WSYQ7"].forEach((cl) => cl.send(JSON.stringify(json)));
-  }
-
   function create(params) {
     const room = genKey(4);
     rooms[room] = [ws];
@@ -105,12 +93,30 @@ wss.on("connection", function connection(ws) {
   function join(params) {
     const room = params.code;
     if (!Object.keys(rooms).includes(room)) {
+      const json = {
+        type: "serverErrorMessage",
+        params: {
+          data: {
+            message: `Room ${room} does not exist!`,
+          },
+        },
+      };
       console.warn(`Room ${room} does not exist!`);
+      ws.send(JSON.stringify(json));
       return;
     }
 
     if (rooms[room].length >= maxClients) {
+      const json = {
+        type: "serverErrorMessage",
+        params: {
+          data: {
+            message: `Room ${room} is full!`,
+          },
+        },
+      };
       console.warn(`Room ${room} is full!`);
+      ws.send(JSON.stringify(json));
       return;
     }
     rooms[room].push(ws);
@@ -137,6 +143,15 @@ wss.on("connection", function connection(ws) {
   }
 
   function close(room) {
+    const json = {
+      type: "closedRoom",
+      params: {
+        data: {
+          message: `The host has closed the room`,
+        },
+      },
+    };
+    rooms[room].forEach((client) => client.send(JSON.stringify(json)));
     delete rooms[room];
     console.log(`Room with pin code ${room} deleted!`);
   }
@@ -165,9 +180,10 @@ function sendPlayersList(roomPincode) {
     },
   };
 
-  rooms[roomPincode].forEach(({ id, chosenCharacter }) => {
+  rooms[roomPincode].forEach(({ id, isReady, chosenCharacter }) => {
     const clientData = {
       id: id,
+      isReady: isReady,
       chosenCharacter: chosenCharacter,
     };
     json.params.data.clientsList.push(clientData);
