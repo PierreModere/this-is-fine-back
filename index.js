@@ -119,6 +119,21 @@ wss.on("connection", function connection(ws) {
       ws.send(JSON.stringify(json));
       return;
     }
+
+    if (rooms[room].gameState != "gameConfiguration") {
+      const json = {
+        type: "serverErrorMessage",
+        params: {
+          data: {
+            message: `Room ${room} game has already been launch!`,
+          },
+        },
+      };
+      console.warn(`Room ${room} game has already been launch!`);
+      ws.send(JSON.stringify(json));
+      return;
+    }
+
     rooms[room].push(ws);
     ws["room"] = room;
     generalInformation(ws);
