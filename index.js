@@ -42,14 +42,17 @@ wss.on("connection", function connection(ws) {
       case "create":
         create(params);
         break;
-      case "delete":
-        deleteRoom(params);
-        break;
       case "join":
         join(params);
         break;
       case "leave":
         leave(params);
+        break;
+      case "delete":
+        deleteRoom(params);
+        break;
+      case "changeScreen":
+        changeScreen(params);
         break;
       default:
         console.warn(`Type: ${type} unknown`);
@@ -218,6 +221,24 @@ function sendPlayerID(ws) {
     };
     ws.send(JSON.stringify(json));
   }
+}
+
+function changeScreen(params) {
+  const room = params.code;
+  const screenName = params.screenName;
+
+  if (screenName == null || screenName == "") return;
+
+  const json = {
+    type: "changedScreen",
+    params: {
+      data: {
+        message: `${screenName}`,
+      },
+    },
+  };
+
+  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
 }
 
 function generalInformation(ws) {
