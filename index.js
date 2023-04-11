@@ -74,7 +74,6 @@ wss.on("connection", function connection(ws) {
     rooms[room] = [ws];
     rooms[room].gameState = "gameConfiguration";
     ws["room"] = room;
-    generalInformation(ws);
     console.log(`Room with pin code ${room} created!`);
     const json = {
       type: "createdRoom",
@@ -85,6 +84,8 @@ wss.on("connection", function connection(ws) {
       },
     };
     ws.send(JSON.stringify(json));
+    ws.isHost = true;
+    generalInformation(ws);
   }
 
   function deleteRoom(params) {
@@ -157,12 +158,12 @@ wss.on("connection", function connection(ws) {
     rooms[room] = rooms[room].filter((so) => so !== ws);
     ws["room"] = undefined;
     sendPlayersList(room);
-    if (rooms[room].length == 0) close(room);
+    if (rooms[room].length == 0 || ws.isHost) close(room);
   }
 
   function close(room) {
     const json = {
-      type: "closedRoom",
+      type: "serverErrorMessage",
       params: {
         data: {
           message: `The host has closed the room`,
