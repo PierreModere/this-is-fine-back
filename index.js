@@ -51,6 +51,9 @@ wss.on("connection", function connection(ws) {
       case "delete":
         deleteRoom(params);
         break;
+      case "selectCharacter":
+        selectCharacter(params);
+        break;
       case "changeScreen":
         changeScreen(params);
         break;
@@ -199,11 +202,11 @@ function sendPlayersList(roomPincode) {
     },
   };
 
-  rooms[roomPincode].forEach(({ id, isReady, chosenCharacter }) => {
+  rooms[roomPincode].forEach(({ id, isReady, selectedCharacter }) => {
     const clientData = {
       id: id,
       isReady: isReady,
-      chosenCharacter: chosenCharacter,
+      selectedCharacter: selectedCharacter,
     };
     json.params.data.clientsList.push(clientData);
   });
@@ -240,6 +243,28 @@ function changeScreen(params) {
   };
 
   rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+}
+
+function selectCharacter(params) {
+  const room = params.code;
+  const id = params.id;
+  const characterName = params.characterName;
+
+  if (characterName == null || characterName == "") return;
+
+  let ws = rooms[room].filter((client) => client.id == id)[0];
+  ws.selectedCharacter = characterName;
+
+  const json = {
+    type: "getMySelectedCharacter",
+    params: {
+      data: {
+        message: `${ws.selectedCharacter}`,
+      },
+    },
+  };
+  ws.send(JSON.stringify(json));
+  sendPlayersList(room);
 }
 
 function generalInformation(ws) {
