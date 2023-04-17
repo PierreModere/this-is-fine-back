@@ -112,6 +112,7 @@ wss.on("connection", function connection(ws) {
         },
       };
       console.warn(`Room ${room} does not exist!`);
+
       ws.send(JSON.stringify(json));
       return;
     }
@@ -156,6 +157,7 @@ wss.on("connection", function connection(ws) {
         },
       },
     };
+
     ws.send(JSON.stringify(json));
   }
 
@@ -194,7 +196,6 @@ function genKey(length) {
   }
   return result;
 }
-
 function sendPlayersList(roomPincode) {
   const json = {
     type: "receivedPlayersList",
@@ -208,7 +209,7 @@ function sendPlayersList(roomPincode) {
   rooms[roomPincode].forEach(({ id, isReady, selectedCharacter }) => {
     const clientData = {
       id: id,
-      isReady: isReady,
+      isReady: isReady ? isReady : false,
       selectedCharacter: selectedCharacter ? selectedCharacter : "",
     };
     json.params.data.clientsList.push(clientData);
@@ -257,6 +258,7 @@ function selectCharacter(params) {
 
   let ws = rooms[room].filter((client) => client.id == id)[0];
   ws.selectedCharacter = characterName;
+  ws.isReady = true;
 
   const json = {
     type: "getMySelectedCharacter",
@@ -267,6 +269,7 @@ function selectCharacter(params) {
     },
   };
   ws.send(JSON.stringify(json));
+
   sendPlayersList(room);
 }
 
@@ -278,6 +281,7 @@ function unselectCharacter(params) {
 
   let ws = rooms[room].filter((client) => client.id == id)[0];
   ws.selectedCharacter = "";
+  ws.isReady = false;
 
   const json = {
     type: "getMySelectedCharacter",
