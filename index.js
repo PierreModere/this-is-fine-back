@@ -57,8 +57,20 @@ wss.on("connection", function connection(ws) {
       case "unselectCharacter":
         unselectCharacter(params);
         break;
+      case "selectMinigame":
+        selectMinigame(params);
+        break;
+      case "startGame":
+        startGame(params);
+        break;
       case "changeScreen":
         changeScreen(params);
+        break;
+      case "changeScene":
+        changeScene(params);
+        break;
+      case "playerIsReady":
+        changePlayerReadyState(params);
         break;
       default:
         console.warn(`Type: ${type} unknown`);
@@ -249,6 +261,24 @@ function changeScreen(params) {
   rooms[room].forEach((client) => client.send(JSON.stringify(json)));
 }
 
+function changeScene(params) {
+  const room = params.code;
+  const sceneName = params.sceneName;
+
+  if (sceneName == null || sceneName == "") return;
+
+  const json = {
+    type: "changedScene",
+    params: {
+      data: {
+        message: `${sceneName}`,
+      },
+    },
+  };
+
+  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+}
+
 function selectCharacter(params) {
   const room = params.code;
   const id = params.id;
@@ -292,6 +322,56 @@ function unselectCharacter(params) {
     },
   };
   ws.send(JSON.stringify(json));
+
+  sendPlayersList(room);
+}
+
+function changePlayerReadyState(params) {
+  const room = params.code;
+  const id = params.id;
+  if (id == null || id == "") return;
+
+  let ws = rooms[room].filter((client) => client.id == id)[0];
+  ws.isReady = true;
+
+  sendPlayersList(room);
+}
+
+function selectMinigame(params) {
+  const room = params.code;
+  const minigameID = params.minigameID;
+
+  if (minigameID == null || minigameID == "") return;
+
+  const json = {
+    type: "receivedSelectedMinigame",
+    params: {
+      data: {
+        message: `${minigameID}`,
+      },
+    },
+  };
+
+  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+}
+function startGame(params) {
+  const room = params.code;
+  rooms[room].gameState = "launchedGame";
+
+  rooms[room].forEach((client) => {
+    client.isReady = false;
+  });
+
+  const json = {
+    type: "changedScene",
+    params: {
+      data: {
+        message: `StartGameScene`,
+      },
+    },
+  };
+
+  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
 
   sendPlayersList(room);
 }
