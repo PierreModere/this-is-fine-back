@@ -66,6 +66,9 @@ wss.on("connection", function connection(ws) {
       case "startGame":
         startGame(params);
         break;
+      case "updatePlayerScore":
+        updatePlayerScore(params);
+        break;
       case "changeScreen":
         changeScreen(params);
         break;
@@ -220,12 +223,13 @@ function sendPlayersList(room, isDuelMode) {
     },
   };
 
-  rooms[room].forEach(({ id, isReady, isDuel, selectedCharacter }) => {
+  rooms[room].forEach(({ id, isReady, isDuel, selectedCharacter, score }) => {
     const clientData = {
       id: id,
       isReady: isReady,
       isDuel: isDuel,
       selectedCharacter: selectedCharacter ? selectedCharacter : "",
+      score: score,
     };
     json.params.data.clientsList.push(clientData);
   });
@@ -394,6 +398,7 @@ function selectMinigame(params) {
     changeScreen({ code: room, screenName: "MinigameInstructionsCanvas" });
 
   resetAllReadyState(room);
+  resetPlayersScore(room);
 }
 
 function setMinigameMode(params) {
@@ -549,10 +554,28 @@ function startGame(params) {
   sendPlayersList(room);
 }
 
+function updatePlayerScore(params) {
+  const room = params.code;
+  const id = params.id;
+  const score = params.score;
+
+  if (room == null || room == "") return;
+
+  rooms[room].filter((client) => client.id == id)[0].score = score;
+
+  sendPlayersList(room);
+}
+
+function resetPlayersScore(room) {
+  rooms[room].forEach((client) => (client.score = 0));
+  sendPlayersList(room);
+}
+
 function generalInformation(ws) {
   ws.id = rooms[ws["room"]].length;
   ws.isReady = false;
   ws.isDuel = false;
+  ws.score = 0;
   sendPlayerID(ws);
   sendPlayersList(ws["room"]);
 }
