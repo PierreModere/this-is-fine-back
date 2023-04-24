@@ -36,9 +36,6 @@ wss.on("connection", function connection(ws) {
     const params = obj.params;
 
     switch (type) {
-      case "action":
-        action(params);
-        break;
       case "create":
         create(params);
         break;
@@ -60,6 +57,12 @@ wss.on("connection", function connection(ws) {
       case "selectMinigame":
         selectMinigame(params);
         break;
+      case "setMinigameMode":
+        setMinigameMode(params);
+        break;
+      case "selectDuelContester":
+        selectDuelContester(params);
+        break;
       case "startGame":
         startGame(params);
         break;
@@ -72,25 +75,24 @@ wss.on("connection", function connection(ws) {
       case "playerIsReady":
         changePlayerReadyState(params);
         break;
+      case "resetDuelStatus":
+        resetDuelStatus(params);
+        break;
+      case "endMinigame":
+        endMinigame(params);
+        break;
       default:
         console.warn(`Type: ${type} unknown`);
         break;
     }
   });
 
-  function action(params) {
-    const actionFunction = params.action;
-    switch (actionFunction) {
-      case actionFunction:
-        IncrementInteger();
-        break;
-    }
-  }
-
   function create(params) {
     const room = genKey(4);
     rooms[room] = [ws];
     rooms[room].gameState = "gameConfiguration";
+    rooms[room].gameMode = "Battle";
+
     ws["room"] = room;
     console.log(`Room with pin code ${room} created!`);
     const json = {
@@ -208,7 +210,7 @@ function genKey(length) {
   }
   return result;
 }
-function sendPlayersList(roomPincode) {
+function sendPlayersList(room, isDuelMode) {
   const json = {
     type: "receivedPlayersList",
     params: {
@@ -218,15 +220,22 @@ function sendPlayersList(roomPincode) {
     },
   };
 
-  rooms[roomPincode].forEach(({ id, isReady, selectedCharacter }) => {
+  rooms[room].forEach(({ id, isReady, isDuel, selectedCharacter }) => {
     const clientData = {
       id: id,
-      isReady: isReady ? isReady : false,
+      isReady: isReady,
+      isDuel: isDuel,
       selectedCharacter: selectedCharacter ? selectedCharacter : "",
     };
     json.params.data.clientsList.push(clientData);
   });
-  rooms[roomPincode].forEach((client) => client.send(JSON.stringify(json)));
+  if (isDuelMode) {
+    json.params.data.clientsList.filter((client) => client.isDuel === true);
+  }
+  rooms[room].forEach((client) => {
+    sendPlayerID(client);
+    client.send(JSON.stringify(json));
+  });
 }
 
 function sendPlayerID(ws) {
@@ -258,7 +267,18 @@ function changeScreen(params) {
     },
   };
 
-  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  if (
+    rooms[room].gameMode == "Duel" &&
+    rooms[room].gameState == "minigameLaunched" &&
+    rooms[room].filter((client) => client.isDuel).length >= 2
+  ) {
+    console.log("on renvoit aux duelists");
+    rooms[room]
+      .filter((client) => client.isDuel)
+      .forEach((client) => client.send(JSON.stringify(json)));
+  } else {
+    rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  }
 }
 
 function changeScene(params) {
@@ -276,7 +296,11 @@ function changeScene(params) {
     },
   };
 
-  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  if (rooms[room].gameMode == "Duel") {
+    rooms[room]
+      .filter((client) => client.isDuel)
+      .forEach((client) => client.send(JSON.stringify(json)));
+  } else rooms[room].forEach((client) => client.send(JSON.stringify(json)));
 }
 
 function selectCharacter(params) {
@@ -337,11 +361,23 @@ function changePlayerReadyState(params) {
   sendPlayersList(room);
 }
 
+function resetAllReadyState(room) {
+  if (!rooms[room] || rooms[room] == null) return;
+
+  rooms[room].forEach((client) => {
+    client.isReady = false;
+  });
+  sendPlayersList(room);
+}
+
 function selectMinigame(params) {
   const room = params.code;
   const minigameID = params.minigameID;
+  const isFirstMinigame = params.isFirstMinigame;
 
   if (minigameID == null || minigameID == "") return;
+
+  rooms[room].gameState = "minigameLaunched";
 
   const json = {
     type: "receivedSelectedMinigame",
@@ -353,7 +389,144 @@ function selectMinigame(params) {
   };
 
   rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+
+  if (!isFirstMinigame)
+    changeScreen({ code: room, screenName: "MinigameInstructionsCanvas" });
+
+  resetAllReadyState(room);
 }
+
+function setMinigameMode(params) {
+  const room = params.code;
+  const mode = params.mode;
+
+  const duelHostID = params.id;
+
+  if (mode == null || mode == "") return;
+
+  rooms[room].gameMode = mode;
+  const json = {
+    type: "setMinigameMode",
+    params: {
+      data: {
+        message: `${mode}`,
+      },
+    },
+  };
+
+  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+
+  if (rooms[room].gameMode == "Battle") {
+    const jsonForHost = {
+      type: "changedScreen",
+      params: {
+        data: {
+          message: `MinigameSelectionCanvas`,
+        },
+      },
+    };
+
+    rooms[room]
+      .filter((client) => client.isHost)[0]
+      .send(JSON.stringify(jsonForHost));
+
+    const jsonForNoHost = {
+      type: "changedScreen",
+      params: {
+        data: {
+          message: `MinigameWaitingCanvas`,
+        },
+      },
+    };
+
+    rooms[room]
+      .filter((client) => !client.isHost)
+      .forEach((client) => client.send(JSON.stringify(jsonForNoHost)));
+  }
+
+  if (rooms[room].gameMode == "Duel" && duelHostID) {
+    const jsonForDuelHost = {
+      type: "changedScreen",
+      params: {
+        data: {
+          message: `DuelSelectionCanvas`,
+        },
+      },
+    };
+
+    let duelHost = rooms[room].filter((client) => client.id == duelHostID)[0];
+
+    duelHost.isDuelHost = true;
+    duelHost.isDuel = true;
+
+    duelHost.send(JSON.stringify(jsonForDuelHost));
+
+    const jsonForNoDuelHosts = {
+      type: "changedScreen",
+      params: {
+        data: {
+          message: `DuelWaitingCanvas`,
+        },
+      },
+    };
+
+    rooms[room]
+      .filter((client) => !client.isDuel)
+      .forEach((client) => client.send(JSON.stringify(jsonForNoDuelHosts)));
+  }
+
+  sendPlayersList(room);
+}
+
+function endMinigame(params) {
+  const room = params.code;
+
+  if (room == null || room == "") return;
+
+  rooms[room].gameState = "onResults";
+  rooms[room].gameMode = "Battle";
+
+  changeScene({ code: room, sceneName: "MinigamesMenuScene" });
+}
+
+function selectDuelContester(params) {
+  const room = params.code;
+  const id = params.id;
+
+  if (id == null || id == "") return;
+
+  let duelContester = rooms[room].filter((client) => client.id == id)[0];
+  duelContester.isDuel = true;
+
+  const json = {
+    type: "changedScreen",
+    params: {
+      data: {
+        message: `MinigameSelectionCanvas`,
+      },
+    },
+  };
+
+  rooms[room]
+    .filter((client) => client.isDuelHost)[0]
+    .send(JSON.stringify(json));
+
+  sendPlayersList(room, true);
+}
+
+function resetDuelStatus(params) {
+  const room = params.code;
+
+  if (room == null || room == "") return;
+
+  rooms[room].forEach((client) => {
+    client.isDuel = false;
+    client.isDuelHost = false;
+    console.log(client.isDuel);
+  });
+  sendPlayersList(room);
+}
+
 function startGame(params) {
   const room = params.code;
   rooms[room].gameState = "launchedGame";
@@ -366,7 +539,7 @@ function startGame(params) {
     type: "changedScene",
     params: {
       data: {
-        message: `StartGameScene`,
+        message: `MinigamesMenuScene`,
       },
     },
   };
@@ -378,6 +551,8 @@ function startGame(params) {
 
 function generalInformation(ws) {
   ws.id = rooms[ws["room"]].length;
+  ws.isReady = false;
+  ws.isDuel = false;
   sendPlayerID(ws);
   sendPlayersList(ws["room"]);
 }
