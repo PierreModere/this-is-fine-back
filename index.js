@@ -84,6 +84,9 @@ wss.on("connection", function connection(ws) {
       case "endMinigame":
         endMinigame(params);
         break;
+      case "returnToDashboard":
+        returnToDashboard(params);
+        break;
       default:
         console.warn(`Type: ${type} unknown`);
         break;
@@ -489,9 +492,28 @@ function endMinigame(params) {
   if (room == null || room == "") return;
 
   rooms[room].gameState = "onResults";
-  rooms[room].gameMode = "Battle";
 
-  changeScene({ code: room, sceneName: "MinigamesMenuScene" });
+  const json = {
+    type: "finishMinigameAnimation",
+    params: {
+      data: {
+        message: `rien`,
+      },
+    },
+  };
+
+  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+
+  // changeScene({ code: room, sceneName: "MinigamesMenuScene" });
+}
+
+function returnToDashboard(params) {
+  rooms[params.code].gameMode = "Battle";
+  rooms[params.code].gameState = "onDashboard";
+
+  changeScene({ code: params.code, sceneName: "MinigamesMenuScene" });
+  changeScreen({ code: params.code, screenName: "DashboardCanvas" });
+  resetDuelStatus({ code: params.code });
 }
 
 function selectDuelContester(params) {
@@ -527,7 +549,6 @@ function resetDuelStatus(params) {
   rooms[room].forEach((client) => {
     client.isDuel = false;
     client.isDuelHost = false;
-    console.log(client.isDuel);
   });
   sendPlayersList(room);
 }
