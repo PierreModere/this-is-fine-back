@@ -183,10 +183,12 @@ wss.on("connection", function connection(ws) {
 
   function leave(params) {
     const room = params.code;
-    rooms[room] = rooms[room].filter((so) => so !== ws);
-    ws["room"] = undefined;
-    sendPlayersList(room);
-    if (rooms[room].length == 0 || ws.isHost) close(room);
+    if (rooms[room]) {
+      rooms[room] = rooms[room].filter((so) => so !== ws);
+      ws["room"] = undefined;
+      sendPlayersList(room);
+      if (rooms[room].length == 0 || ws.isHost) close(room);
+    }
   }
 
   function close(room) {
