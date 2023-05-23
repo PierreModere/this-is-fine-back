@@ -4,7 +4,7 @@ const WebSocket = require("ws");
 const fs = require("node:fs");
 
 const app = express();
-const port = 8080;
+const port = 1234;
 
 var server;
 try {
