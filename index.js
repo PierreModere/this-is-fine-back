@@ -30,6 +30,7 @@ let rooms = {};
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", function connection(ws) {
+  console.log(ws);
   ws.on("message", function message(data) {
     const obj = JSON.parse(data.replace(/'/g, `"`));
     const type = obj.type;
