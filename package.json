@@ -1,7 +1,7 @@
 {
-  "name": "socketioserver",
+  "name": "this-is-fine-server",
   "version": "1.0.0",
-  "description": "back socketio server for our game",
+  "description": "This is fine WebSocket server",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,7 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "socketio": "^1.0.0",
     "ws": "^7.1.2"
   }
 }
