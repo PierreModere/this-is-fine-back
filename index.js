@@ -30,7 +30,8 @@ let rooms = {};
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", function connection(ws) {
-  console.log(ws);
+  console.log("Connected");
+
   ws.on("message", function message(data) {
     const obj = JSON.parse(data.replace(/'/g, `"`));
     const type = obj.type;
@@ -165,6 +166,8 @@ wss.on("connection", function connection(ws) {
       ws.send(JSON.stringify(json));
       return;
     }
+
+    console.log(`Room ${room} has been joined!`);
 
     rooms[room].push(ws);
     ws["room"] = room;
