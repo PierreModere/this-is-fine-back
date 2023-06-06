@@ -215,19 +215,37 @@ wss.on("connection", function connection(ws) {
   function reconnectPlayer(params) {
     const room = params.code;
     if (rooms[room]) {
-      console.log(rooms[room]);
       if (
         rooms[room].filter((client) => client.id == params.playerID).length > 0
       ) {
-        const client = rooms[params.roomCode].filter(
+        console.log(
+          rooms[params.roomCode].filter(
+            (client) => client.id == params.playerID
+          )[0]
+        );
+        rooms[params.roomCode].filter(
           (client) => client.id == params.playerID
-        )[0];
-        client = {};
-        client = ws;
-        client.id = params.playerID;
-        client.isReady = false;
-        client.isDuel = false;
-        client.score = 0;
+        )[0] = {};
+        rooms[params.roomCode].filter(
+          (client) => client.id == params.playerID
+        )[0] = ws;
+        rooms[params.roomCode].filter(
+          (client) => client.id == params.playerID
+        )[0].id = params.playerID;
+        rooms[params.roomCode].filter(
+          (client) => client.id == params.playerID
+        )[0].isReady = false;
+        rooms[params.roomCode].filter(
+          (client) => client.id == params.playerID
+        )[0].isDuel = false;
+        rooms[params.roomCode].filter(
+          (client) => client.id == params.playerID
+        )[0].score = 0;
+        console.log(
+          rooms[params.roomCode].filter(
+            (client) => client.id == params.playerID
+          )[0]
+        );
       }
     }
   }
