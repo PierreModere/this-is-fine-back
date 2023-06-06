@@ -214,7 +214,7 @@ wss.on("connection", function connection(ws) {
 
   function reconnectPlayer(params) {
     console.log("test");
-    const room = params.room;
+    const room = params.code;
     if (rooms[room]) {
       console.log(rooms[room]);
       if (
