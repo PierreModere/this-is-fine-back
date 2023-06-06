@@ -170,6 +170,8 @@ wss.on("connection", function connection(ws) {
       return;
     }
 
+    console.log(`Room ${room} has been joined!`);
+
     rooms[room].push(ws);
     ws["room"] = room;
     generalInformation(ws);
