@@ -214,19 +214,21 @@ wss.on("connection", function connection(ws) {
 
   function reconnectPlayer(params) {
     console.log("test");
-    if (
-      rooms[params.roomCode] &&
-      rooms[params.roomCode].filter((client) => client.id == params.playerID)
-        .length > 0
-    ) {
-      const client = rooms[params.roomCode].filter(
-        (client) => client.id == params.playerID
-      )[0];
-      client = ws;
-      client.id = params.playerID;
-      client.isReady = false;
-      client.isDuel = false;
-      client.score = 0;
+    const room = params.room;
+    if (rooms[room]) {
+      console.log(rooms[room]);
+      if (
+        rooms[room].filter((client) => client.id == params.playerID).length > 0
+      ) {
+        const client = rooms[params.roomCode].filter(
+          (client) => client.id == params.playerID
+        )[0];
+        client = ws;
+        client.id = params.playerID;
+        client.isReady = false;
+        client.isDuel = false;
+        client.score = 0;
+      }
     }
   }
 });
