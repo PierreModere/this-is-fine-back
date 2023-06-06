@@ -211,6 +211,24 @@ wss.on("connection", function connection(ws) {
     delete rooms[room];
     console.log(`Room with pin code ${room} deleted!`);
   }
+
+  function reconnectPlayer(params) {
+    console.log("test");
+    if (
+      rooms[params.roomCode] &&
+      rooms[params.roomCode].filter((client) => client.id == params.playerID)
+        .length > 0
+    ) {
+      const client = rooms[params.roomCode].filter(
+        (client) => client.id == params.playerID
+      )[0];
+      client = ws;
+      client.id = params.playerID;
+      client.isReady = false;
+      client.isDuel = false;
+      client.score = 0;
+    }
+  }
 });
 
 server.listen(port, function () {
@@ -599,18 +617,6 @@ function updatePlayerScore(params) {
 function resetPlayersScore(room) {
   rooms[room].forEach((client) => (client.score = 0));
   sendPlayersList(room);
-}
-
-function reconnectPlayer(params) {
-  if (
-    rooms[params.roomCode] &&
-    rooms[params.roomCode].filter((client) => client.id == params.playerID)
-      .length > 0
-  ) {
-    rooms[params.roomCode].filter(
-      (client) => client.id == params.playerID
-    )[0] == ws;
-  }
 }
 
 function generalInformation(ws) {
