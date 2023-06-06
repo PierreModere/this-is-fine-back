@@ -222,9 +222,8 @@ wss.on("connection", function connection(ws) {
         const client = rooms[params.roomCode].filter(
           (client) => client.id == params.playerID
         )[0];
-        console.log(client);
+        client = {};
         client = ws;
-        console.log(client);
         client.id = params.playerID;
         client.isReady = false;
         client.isDuel = false;
