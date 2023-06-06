@@ -31,6 +31,7 @@ const wss = new WebSocket.Server({ server });
 
 wss.on("connection", function connection(ws) {
   console.log(ws);
+
   ws.on("message", function message(data) {
     const obj = JSON.parse(data.replace(/'/g, `"`));
     const type = obj.type;
@@ -87,6 +88,9 @@ wss.on("connection", function connection(ws) {
         break;
       case "returnToDashboard":
         returnToDashboard(params);
+        break;
+      case "reconnectPlayer":
+        reconnectPlayer(params);
         break;
       default:
         console.warn(`Type: ${type} unknown`);
@@ -593,6 +597,18 @@ function updatePlayerScore(params) {
 function resetPlayersScore(room) {
   rooms[room].forEach((client) => (client.score = 0));
   sendPlayersList(room);
+}
+
+function reconnectPlayer(params) {
+  if (
+    rooms[params.roomCode] &&
+    rooms[params.roomCode].filter((client) => client.id == params.playerID)
+      .length > 0
+  ) {
+    rooms[params.roomCode].filter(
+      (client) => client.id == params.playerID
+    )[0] == ws;
+  }
 }
 
 function generalInformation(ws) {
