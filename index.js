@@ -213,7 +213,6 @@ wss.on("connection", function connection(ws) {
   }
 
   function reconnectPlayer(params) {
-    console.log("test");
     const room = params.code;
     if (rooms[room]) {
       console.log(rooms[room]);
@@ -223,7 +222,9 @@ wss.on("connection", function connection(ws) {
         const client = rooms[params.roomCode].filter(
           (client) => client.id == params.playerID
         )[0];
+        console.log(client);
         client = ws;
+        console.log(client);
         client.id = params.playerID;
         client.isReady = false;
         client.isDuel = false;
