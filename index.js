@@ -217,9 +217,10 @@ wss.on("connection", function connection(ws) {
     if (rooms[room]) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
         console.log(rooms[room].length);
-        rooms[room].filter((client) => client.id != params.playerID);
+        rooms[room].filter((client) => client.id != playerID);
         console.log(rooms[room].length);
-        //rooms[room][rooms[room].length - 1].id = params.playerID;
+        join(params);
+        rooms[room][rooms[room].length - 1].id = playerID;
       }
     }
   }
