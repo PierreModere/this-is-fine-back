@@ -215,12 +215,16 @@ wss.on("connection", function connection(ws) {
     const playerID = params.id;
     if (rooms[room]) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
-        rooms[room].filter((client) => client.id != playerID);
+        const client = rooms[room].filter((client) => client.id == playerID)[0];
         ws["room"] = room;
-        ws.id = playerID;
+        ws.id = client.id;
         ws.isReady = false;
         ws.isDuel = false;
-        ws.score = 0;
+        ws.score = client.score;
+        ws.selectedCharacter = client.selectedCharacter
+          ? client.selectedCharacter
+          : "";
+        rooms[room].filter((client) => client.id != playerID);
         rooms[room].push(ws);
       }
     }
