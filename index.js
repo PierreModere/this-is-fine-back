@@ -30,8 +30,6 @@ let rooms = {};
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", function connection(ws) {
-  console.log(ws);
-
   ws.on("message", function message(data) {
     const obj = JSON.parse(data.replace(/'/g, `"`));
     const type = obj.type;
@@ -218,34 +216,9 @@ wss.on("connection", function connection(ws) {
       if (
         rooms[room].filter((client) => client.id == params.playerID).length > 0
       ) {
-        console.log(
-          rooms[params.roomCode].filter(
-            (client) => client.id == params.playerID
-          )[0]
-        );
-        rooms[params.roomCode].filter(
-          (client) => client.id == params.playerID
-        )[0] = {};
-        rooms[params.roomCode].filter(
-          (client) => client.id == params.playerID
-        )[0] = ws;
-        rooms[params.roomCode].filter(
-          (client) => client.id == params.playerID
-        )[0].id = params.playerID;
-        rooms[params.roomCode].filter(
-          (client) => client.id == params.playerID
-        )[0].isReady = false;
-        rooms[params.roomCode].filter(
-          (client) => client.id == params.playerID
-        )[0].isDuel = false;
-        rooms[params.roomCode].filter(
-          (client) => client.id == params.playerID
-        )[0].score = 0;
-        console.log(
-          rooms[params.roomCode].filter(
-            (client) => client.id == params.playerID
-          )[0]
-        );
+        rooms[room].filter((client) => client.id != params.playerID);
+        join(params);
+        rooms[room][rooms[room].length - 1].id = params.playerID;
       }
     }
   }
