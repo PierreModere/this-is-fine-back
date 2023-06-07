@@ -221,10 +221,10 @@ wss.on("connection", function connection(ws) {
         ws.selectedCharacter = client.selectedCharacter
           ? client.selectedCharacter
           : "";
-        delete rooms[room].filter((client) => client.id != playerID)[0];
+        rooms[room] = rooms[room].filter((client) => client.id != playerID);
         rooms[room].push(ws);
-        console.log(rooms[room].length);
         generalInformation(ws, true);
+        console.log(rooms[room].length);
       }
     }
   }
