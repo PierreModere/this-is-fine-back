@@ -212,7 +212,7 @@ wss.on("connection", function connection(ws) {
 
   function reconnectPlayer(params) {
     const room = params.code;
-    const playerID = params.playerID;
+    const playerID = params.id;
     console.log(playerID);
     if (rooms[room]) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
