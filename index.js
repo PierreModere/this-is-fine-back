@@ -221,9 +221,9 @@ wss.on("connection", function connection(ws) {
         ws.selectedCharacter = client.selectedCharacter
           ? client.selectedCharacter
           : "";
-        generalInformation(ws, true);
         rooms[room].filter((client) => client.id != playerID);
         rooms[room].push(ws);
+        generalInformation(ws, true);
       }
     }
   }
