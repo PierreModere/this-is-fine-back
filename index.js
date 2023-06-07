@@ -213,14 +213,15 @@ wss.on("connection", function connection(ws) {
   function reconnectPlayer(params) {
     const room = params.code;
     const playerID = params.id;
-    console.log(playerID);
     if (rooms[room]) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
-        console.log(rooms[room].length);
         rooms[room].filter((client) => client.id != playerID);
-        console.log(rooms[room].length);
-        join(params);
-        rooms[room][rooms[room].length - 1].id = playerID;
+        ws["room"] = room;
+        ws.id = playerID;
+        ws.isReady = false;
+        ws.isDuel = false;
+        ws.score = 0;
+        rooms[room].push(ws);
       }
     }
   }
