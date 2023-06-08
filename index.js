@@ -214,10 +214,10 @@ wss.on("connection", function connection(ws) {
   }
 
   function checkRoomExistance(params) {
-    if (rooms[params.code]) {
-      if (
-        rooms[params.code].filter((client) => client.id == params.id).length > 0
-      ) {
+    const room = params.code;
+    if (rooms[room]) {
+      console.log("La room " + room + " existe !");
+      if (rooms[room].filter((client) => client.id == params.id).length > 0) {
         const json = {
           type: "hasBeenInARoom",
           params: {
