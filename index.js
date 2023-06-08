@@ -90,6 +90,9 @@ wss.on("connection", function connection(ws) {
       case "reconnectPlayer":
         reconnectPlayer(params);
         break;
+      case "checkRoomExistance":
+        checkRoomExistance(params);
+        break;
       default:
         console.warn(`Type: ${type} unknown`);
         break;
@@ -208,6 +211,24 @@ wss.on("connection", function connection(ws) {
     rooms[room].forEach((client) => client.send(JSON.stringify(json)));
     delete rooms[room];
     console.log(`Room with pin code ${room} deleted!`);
+  }
+
+  function checkRoomExistance(params) {
+    if (rooms[params.code]) {
+      if (
+        rooms[params.code].filter((client) => client.id == params.id).length > 0
+      ) {
+        const json = {
+          type: "hasBeenInARoom",
+          params: {
+            data: {
+              message: `rien`,
+            },
+          },
+        };
+        ws.send(JSON.stringify(json));
+      }
+    }
   }
 
   function reconnectPlayer(params) {
