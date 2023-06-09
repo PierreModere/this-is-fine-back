@@ -104,6 +104,7 @@ wss.on("connection", function connection(ws) {
     rooms[room] = [ws];
     rooms[room].gameState = "gameConfiguration";
     rooms[room].gameMode = "Battle";
+    rooms[room].firstMinigameID = Math.floor(Math.random() * (4 - 1)) + 1;
 
     ws["room"] = room;
     console.log(`Room with pin code ${room} created!`);
@@ -116,6 +117,16 @@ wss.on("connection", function connection(ws) {
       },
     };
     ws.send(JSON.stringify(json));
+    const firstMinigameIDJson = {
+      type: "receivedFirstMinigameID",
+      params: {
+        data: {
+          message: `${rooms[room].firstMinigameID}`,
+        },
+      },
+    };
+
+    ws.send(JSON.stringify(firstMinigameIDJson));
     ws.isHost = true;
     generalInformation(ws);
   }
@@ -187,6 +198,19 @@ wss.on("connection", function connection(ws) {
     };
 
     ws.send(JSON.stringify(json));
+
+    const firstMinigameIDJson = {
+      type: "receivedFirstMinigameID",
+      params: {
+        data: {
+          message: `${rooms[room].firstMinigameID}`,
+        },
+      },
+    };
+
+    ws.send(JSON.stringify(firstMinigameIDJson));
+
+    rooms[room].firstMinigameID;
   }
 
   function leave(params) {
@@ -320,17 +344,19 @@ function changeScreen(params) {
     },
   };
 
-  if (
-    rooms[room].gameMode == "Duel" &&
-    rooms[room].gameState == "minigameLaunched" &&
-    rooms[room].filter((client) => client.isDuel).length >= 2
-  ) {
-    console.log("on renvoit aux duelists");
-    rooms[room]
-      .filter((client) => client.isDuel)
-      .forEach((client) => client.send(JSON.stringify(json)));
-  } else {
-    rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  if (rooms[room]) {
+    if (
+      rooms[room].gameMode == "Duel" &&
+      rooms[room].gameState == "minigameLaunched" &&
+      rooms[room].filter((client) => client.isDuel).length >= 2
+    ) {
+      rooms[room]
+        .filter((client) => client.isDuel)
+        .forEach((client) => client.send(JSON.stringify(json)));
+      console.log("on renvoit aux duelists");
+    } else {
+      rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+    }
   }
 }
 
@@ -426,7 +452,6 @@ function resetAllReadyState(room) {
 function selectMinigame(params) {
   const room = params.code;
   const minigameID = params.minigameID;
-  const isFirstMinigame = params.isFirstMinigame;
 
   if (minigameID == null || minigameID == "") return;
 
@@ -443,8 +468,7 @@ function selectMinigame(params) {
 
   rooms[room].forEach((client) => client.send(JSON.stringify(json)));
 
-  if (!isFirstMinigame)
-    changeScreen({ code: room, screenName: "MinigameInstructionsCanvas" });
+  changeScreen({ code: room, screenName: "MinigameInstructionsCanvas" });
 
   resetAllReadyState(room);
   resetPlayersScore(room);
