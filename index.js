@@ -653,7 +653,7 @@ function updatePlayerScore(params) {
   if (room == null || room == "") return;
 
   rooms[room].filter((client) => client.id == id)[0].score = score;
-
+  console.log("player " + id + " : " + score);
   sendPlayersList(room);
 }
 
