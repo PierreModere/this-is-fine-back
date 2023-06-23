@@ -632,6 +632,8 @@ function selectWinner(params) {
   console.log("Winner is : " + id);
 
   rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+
+  delete rooms[room];
 }
 
 function resetDuelStatus(params) {
