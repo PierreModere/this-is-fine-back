@@ -63,6 +63,9 @@ wss.on("connection", function connection(ws) {
       case "selectDuelContester":
         selectDuelContester(params);
         break;
+      case "selectWinner":
+        selectWinner(params);
+        break;
       case "startGame":
         startGame(params);
         break;
@@ -609,6 +612,24 @@ function selectDuelContester(params) {
     .send(JSON.stringify(json));
 
   sendPlayersList(room, true);
+}
+
+function selectWinner(params) {
+  const room = params.code;
+  const id = params.id;
+
+  if (room == null || id == "") return;
+
+  const json = {
+    type: "selectedWinner",
+    params: {
+      data: {
+        message: `${id}`,
+      },
+    },
+  };
+
+  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
 }
 
 function resetDuelStatus(params) {
