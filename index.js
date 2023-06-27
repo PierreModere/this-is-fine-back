@@ -502,7 +502,15 @@ function setMinigameMode(params) {
 
   const duelHostID = params.id;
 
-  if (mode == null || mode == "" || rooms[room].length == 0) return;
+  if (!rooms[room]) console.log(`Room ${room} does not exist`);
+
+  if (
+    mode == null ||
+    mode == "" ||
+    rooms[room] != undefined ||
+    rooms[room].length == 0
+  )
+    return;
 
   rooms[room].gameMode = mode;
   const json = {
