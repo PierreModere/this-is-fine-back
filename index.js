@@ -235,7 +235,7 @@ wss.on("connection", function connection(ws) {
         },
       },
     };
-    rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+    sentToAllClients(room, json);
     delete rooms[room];
     console.log(`Room with pin code ${room} deleted!`);
   }
@@ -281,6 +281,14 @@ wss.on("connection", function connection(ws) {
 server.listen(port, function () {
   console.log(`Listening on http://localhost:${port}`);
 });
+
+function sentToAllClients(room, json) {
+  rooms[room].forEach((client) => {
+    if (client != undefined) {
+      client.send(JSON.stringify(json));
+    }
+  });
+}
 
 function genKey(length) {
   let result = "";
@@ -470,7 +478,7 @@ function selectMinigame(params) {
     },
   };
 
-  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  sentToAllClients(room, json);
 
   changeScreen({ code: room, screenName: "MinigameInstructionsCanvas" });
 
@@ -496,10 +504,7 @@ function setMinigameMode(params) {
     },
   };
 
-  rooms[room].forEach((client) => {
-    console.log(client);
-    client.send(JSON.stringify(json));
-  });
+  sentToAllClients(room, json);
 
   if (rooms[room].gameMode == "Battle") {
     const jsonForHost = {
@@ -579,8 +584,7 @@ function endMinigame(params) {
     },
   };
 
-  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
-
+  sentToAllClients(room, json);
   // changeScene({ code: room, sceneName: "MinigamesMenuScene" });
 }
 
@@ -632,13 +636,9 @@ function selectWinner(params) {
       },
     },
   };
-
   console.log("Winner is : " + id);
-
-  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
-
+  sentToAllClients(room, json);
   delete rooms[room];
-
   console.log("Game in room " + room + " is finito !");
 }
 
@@ -671,7 +671,7 @@ function startGame(params) {
     },
   };
 
-  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  sentToAllClients(room, json);
 
   sendPlayersList(room);
 }
@@ -684,7 +684,6 @@ function updatePlayerScore(params) {
   if (room == null || room == "") return;
 
   rooms[room].filter((client) => client.id == id)[0].score = score;
-  console.log("player " + id + " : " + score);
   sendPlayersList(room);
 }
 
