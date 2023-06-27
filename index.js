@@ -271,7 +271,6 @@ wss.on("connection", function connection(ws) {
           : "";
         rooms[room] = rooms[room].filter((client) => client.id != playerID);
         rooms[room].push(ws);
-        console.log(rooms[room][0]);
         console.log(`Player ${playerID} in room ${room} is reconnected !`);
         generalInformation(ws, true);
       }
@@ -485,7 +484,7 @@ function setMinigameMode(params) {
 
   const duelHostID = params.id;
 
-  if (mode == null || mode == "" || !rooms[room]) return;
+  if (mode == null || mode == "" || rooms[room].length == 0) return;
 
   rooms[room].gameMode = mode;
   const json = {
@@ -498,7 +497,8 @@ function setMinigameMode(params) {
   };
 
   rooms[room].forEach((client) => {
-    if (client != undefined) client.send(JSON.stringify(json));
+    console.log(client);
+    client.send(JSON.stringify(json));
   });
 
   if (rooms[room].gameMode == "Battle") {
