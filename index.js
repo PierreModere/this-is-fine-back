@@ -91,7 +91,7 @@ wss.on("connection", function connection(ws) {
         returnToDashboard(params);
         break;
       case "reconnectPlayer":
-        reconnectPlayer(params);
+        reconnectPlayer(params, ws);
         break;
       case "checkRoomExistance":
         checkRoomExistance(params);
@@ -107,7 +107,7 @@ wss.on("connection", function connection(ws) {
     rooms[room] = [ws];
     rooms[room].gameState = "gameConfiguration";
     rooms[room].gameMode = "Battle";
-    rooms[room].firstMinigameID = Math.floor(Math.random() * (4 - 1)) + 1;
+    rooms[room].firstMinigameID = Math.floor(Math.random() * 4) + 1;
 
     ws["room"] = room;
     console.log(`Room with pin code ${room} created!`);
@@ -258,10 +258,10 @@ wss.on("connection", function connection(ws) {
     }
   }
 
-  function reconnectPlayer(params) {
+  function reconnectPlayer(params, ws) {
     const room = params.code;
     const playerID = params.id;
-    if (rooms[room] != undefined && rooms[room] != null) {
+    if (rooms[room]) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
         const client = rooms[room].filter((client) => client.id == playerID)[0];
         ws["room"] = room;
@@ -279,7 +279,7 @@ wss.on("connection", function connection(ws) {
             },
           },
         };
-        ws.send(JSON.stringify(json));
+
         rooms[room][0].send(JSON.stringify(json));
         console.log(`Player ${playerID} in room ${room} is reconnected !`);
         generalInformation(ws, true);
