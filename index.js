@@ -497,7 +497,9 @@ function setMinigameMode(params) {
     },
   };
 
-  rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  rooms[room].forEach((client) => {
+    if (client != undefined) client.send(JSON.stringify(json));
+  });
 
   if (rooms[room].gameMode == "Battle") {
     const jsonForHost = {
