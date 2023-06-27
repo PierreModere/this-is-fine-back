@@ -266,23 +266,16 @@ wss.on("connection", function connection(ws) {
         const client = rooms[room].filter((client) => client.id == playerID)[0];
         ws["room"] = room;
         ws.id = client.id;
+        ws.isHost = client.isHost;
+        ws.isDuelHost = client.isDuelHost;
         ws.selectedCharacter = client.selectedCharacter
           ? client.selectedCharacter
           : "";
+
         rooms[room] = rooms[room].filter((client) => client.id != playerID);
         rooms[room].push(ws);
-        const json = {
-          type: "hasBeenInARoom",
-          params: {
-            data: {
-              message: `rien`,
-            },
-          },
-        };
-
-        rooms[room][0].send(JSON.stringify(json));
-        console.log(`Player ${playerID} in room ${room} is reconnected !`);
         generalInformation(ws, true);
+        console.log(`Player ${playerID} in room ${room} is reconnected !`);
       }
     }
   }
@@ -318,16 +311,20 @@ function sendPlayersList(room, isDuelMode) {
     },
   };
 
-  rooms[room].forEach(({ id, isReady, isDuel, selectedCharacter, score }) => {
-    const clientData = {
-      id: id,
-      isReady: isReady,
-      isDuel: isDuel,
-      selectedCharacter: selectedCharacter ? selectedCharacter : "",
-      score: score,
-    };
-    json.params.data.clientsList.push(clientData);
-  });
+  rooms[room].forEach(
+    ({ id, isReady, isDuel, isHost, isDuelHost, selectedCharacter, score }) => {
+      const clientData = {
+        id: id,
+        isReady: isReady,
+        isDuel: isDuel,
+        selectedCharacter: selectedCharacter ? selectedCharacter : "",
+        score: score,
+        isHost: isHost ? isHost : false,
+        isDuelHost: isDuelHost ? isDuelHost : false,
+      };
+      json.params.data.clientsList.push(clientData);
+    }
+  );
   if (isDuelMode) {
     json.params.data.clientsList.filter((client) => client.isDuel === true);
   }
