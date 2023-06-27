@@ -271,6 +271,16 @@ wss.on("connection", function connection(ws) {
           : "";
         rooms[room] = rooms[room].filter((client) => client.id != playerID);
         rooms[room].push(ws);
+        const json = {
+          type: "hasBeenInARoom",
+          params: {
+            data: {
+              message: `rien`,
+            },
+          },
+        };
+        ws.send(JSON.stringify(json));
+        rooms[room][0].send(JSON.stringify(json));
         console.log(`Player ${playerID} in room ${room} is reconnected !`);
         generalInformation(ws, true);
       }
