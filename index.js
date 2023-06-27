@@ -261,7 +261,7 @@ wss.on("connection", function connection(ws) {
   function reconnectPlayer(params) {
     const room = params.code;
     const playerID = params.id;
-    if (rooms[room]) {
+    if (rooms[room] != undefined && rooms[room] != null) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
         const client = rooms[room].filter((client) => client.id == playerID)[0];
         ws["room"] = room;
@@ -271,6 +271,7 @@ wss.on("connection", function connection(ws) {
           : "";
         rooms[room] = rooms[room].filter((client) => client.id != playerID);
         rooms[room].push(ws);
+        console.log(`Player ${playerID} in room ${room} is reconnected !`);
         generalInformation(ws, true);
       }
     }
@@ -483,7 +484,7 @@ function setMinigameMode(params) {
 
   const duelHostID = params.id;
 
-  if (mode == null || mode == "") return;
+  if (mode == null || mode == "" || !rooms[room]) return;
 
   rooms[room].gameMode = mode;
   const json = {
@@ -618,7 +619,7 @@ function selectWinner(params) {
   const room = params.code;
   const id = params.id;
 
-  if (room == null || id == "") return;
+  if (room == null || !rooms[room] || id == "") return;
 
   const json = {
     type: "selectedWinner",
@@ -634,6 +635,8 @@ function selectWinner(params) {
   rooms[room].forEach((client) => client.send(JSON.stringify(json)));
 
   delete rooms[room];
+
+  console.log("Game in room " + room + " is finito !");
 }
 
 function resetDuelStatus(params) {
