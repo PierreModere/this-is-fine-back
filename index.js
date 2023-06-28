@@ -422,7 +422,7 @@ function changeScene(params) {
   rooms[room].currentScene = sceneName;
   console.log(`${rooms[room].currentScene}-${rooms[room].currentScreen}`);
 
-  if (rooms[room].gameMode == "Duel") {
+  if (rooms[room].gameMode == "Duel" && sceneName != "ResultsScene") {
     rooms[room]
       .filter((client) => client.isDuel)
       .forEach((client) => client.send(JSON.stringify(json)));
