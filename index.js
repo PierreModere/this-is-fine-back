@@ -408,7 +408,7 @@ function changeScene(params) {
   const room = params.code;
   const sceneName = params.sceneName;
 
-  if (sceneName == null || sceneName == "") return;
+  if (sceneName == null || sceneName == undefined || sceneName == "") return;
 
   const json = {
     type: "changedScene",
