@@ -132,6 +132,17 @@ wss.on("connection", function connection(ws) {
     };
 
     ws.send(JSON.stringify(firstMinigameIDJson));
+
+    const json3 = {
+      type: "hasBeenInARoom",
+      params: {
+        data: {
+          message: `${rooms[room].currentScene}-${rooms[room].currentScreen}`,
+        },
+      },
+    };
+    ws.send(JSON.stringify(json3));
+
     ws.isHost = true;
     generalInformation(ws);
   }
