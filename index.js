@@ -133,16 +133,6 @@ wss.on("connection", function connection(ws) {
 
     ws.send(JSON.stringify(firstMinigameIDJson));
 
-    const json3 = {
-      type: "hasBeenInARoom",
-      params: {
-        data: {
-          message: `${rooms[room].currentScene}-${rooms[room].currentScreen}`,
-        },
-      },
-    };
-    ws.send(JSON.stringify(json3));
-
     ws.isHost = true;
     generalInformation(ws);
   }
@@ -384,6 +374,9 @@ function changeScreen(params) {
 
   if (screenName == null || screenName == undefined || screenName == "") return;
 
+  rooms[room].currentScreen = screenName;
+  console.log(`${rooms[room].currentScene}-${rooms[room].currentScreen}`);
+
   const json = {
     type: "changedScreen",
     params: {
@@ -405,7 +398,6 @@ function changeScreen(params) {
       console.log("on renvoit aux duelists");
     } else {
       rooms[room].forEach((client) => client.send(JSON.stringify(json)));
-      rooms[room].currentScreen = screenName;
     }
   }
 }
@@ -425,13 +417,15 @@ function changeScene(params) {
     },
   };
 
+  rooms[room].currentScene = sceneName;
+  console.log(`${rooms[room].currentScene}-${rooms[room].currentScreen}`);
+
   if (rooms[room].gameMode == "Duel") {
     rooms[room]
       .filter((client) => client.isDuel)
       .forEach((client) => client.send(JSON.stringify(json)));
   } else {
     sendToAllClients(room, json);
-    rooms[room].currentScene = sceneName;
   }
 }
 
