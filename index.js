@@ -270,6 +270,8 @@ wss.on("connection", function connection(ws) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
         const client = rooms[room].filter((client) => client.id == playerID)[0];
 
+        console.log(rooms[room]);
+
         ws["room"] = room;
         ws.id = client.id;
         ws.isHost = client.isHost;
@@ -284,7 +286,7 @@ wss.on("connection", function connection(ws) {
         generalInformation(ws, true);
 
         // on renvoit au client qui se reconnecte le nom de la scene et du screen actuel
-        const json = {
+        const jsonWithScreen = {
           type: "hasBeenInARoom",
           params: {
             data: {
@@ -292,10 +294,9 @@ wss.on("connection", function connection(ws) {
             },
           },
         };
-        ws.send(JSON.stringify(json));
+        ws.send(JSON.stringify(jsonWithScreen));
 
         console.log(`Player ${playerID} in room ${room} is reconnected !`);
-        console.log(`${rooms[room].currentScene}-${rooms[room].currentScreen}`);
       }
     }
   }
