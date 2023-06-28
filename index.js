@@ -108,6 +108,8 @@ wss.on("connection", function connection(ws) {
     rooms[room].gameState = "gameConfiguration";
     rooms[room].gameMode = "Battle";
     rooms[room].firstMinigameID = Math.floor(Math.random() * 4) + 1;
+    rooms[room].currentScene = "StartMenuScene";
+    rooms[room].currentScreen = "LobbyCanvas";
 
     ws["room"] = room;
     console.log(`Room with pin code ${room} created!`);
@@ -235,7 +237,7 @@ wss.on("connection", function connection(ws) {
         },
       },
     };
-    sentToAllClients(room, json);
+    sendToAllClients(room, json);
     delete rooms[room];
     console.log(`Room with pin code ${room} deleted!`);
   }
@@ -261,9 +263,12 @@ wss.on("connection", function connection(ws) {
   function reconnectPlayer(params, ws) {
     const room = params.code;
     const playerID = params.id;
+    // si la room existe
     if (rooms[room]) {
+      // si le client avec cet id existe
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
         const client = rooms[room].filter((client) => client.id == playerID)[0];
+
         ws["room"] = room;
         ws.id = client.id;
         ws.isHost = client.isHost;
@@ -271,10 +276,23 @@ wss.on("connection", function connection(ws) {
         ws.selectedCharacter = client.selectedCharacter
           ? client.selectedCharacter
           : "";
-
+        // on jarte la référence websocket avec cet id actuel
         rooms[room] = rooms[room].filter((client) => client.id != playerID);
+        // on la remplace par la nouvelle référence websocket à laquelle on a donnée toutes les propriétés de la précédente
         rooms[room].push(ws);
         generalInformation(ws, true);
+
+        // on renvoit au client qui se reconnecte le nom de la scene et du screen actuel
+        const json = {
+          type: "hasBeenInARoom",
+          params: {
+            data: {
+              message: `${rooms[room].currentScene}-${rooms[room].currentScreen}`,
+            },
+          },
+        };
+        ws.send(JSON.stringify(json));
+
         console.log(`Player ${playerID} in room ${room} is reconnected !`);
       }
     }
@@ -285,7 +303,7 @@ server.listen(port, function () {
   console.log(`Listening on http://localhost:${port}`);
 });
 
-function sentToAllClients(room, json) {
+function sendToAllClients(room, json) {
   rooms[room].forEach((client) => {
     if (client != undefined) {
       client.send(JSON.stringify(json));
@@ -375,6 +393,7 @@ function changeScreen(params) {
       console.log("on renvoit aux duelists");
     } else {
       rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+      rooms[room].currentScreen = screenName;
     }
   }
 }
@@ -398,7 +417,10 @@ function changeScene(params) {
     rooms[room]
       .filter((client) => client.isDuel)
       .forEach((client) => client.send(JSON.stringify(json)));
-  } else rooms[room].forEach((client) => client.send(JSON.stringify(json)));
+  } else {
+    sendToAllClients(room, json);
+    rooms[room].currentScene = sceneName;
+  }
 }
 
 function selectCharacter(params) {
@@ -485,7 +507,7 @@ function selectMinigame(params) {
     },
   };
 
-  sentToAllClients(room, json);
+  sendToAllClients(room, json);
 
   changeScreen({ code: room, screenName: "MinigameInstructionsCanvas" });
 
@@ -512,7 +534,7 @@ function setMinigameMode(params) {
     },
   };
 
-  sentToAllClients(room, json);
+  sendToAllClients(room, json);
 
   if (rooms[room].gameMode == "Battle") {
     const jsonForHost = {
@@ -592,7 +614,7 @@ function endMinigame(params) {
     },
   };
 
-  sentToAllClients(room, json);
+  sendToAllClients(room, json);
   // changeScene({ code: room, sceneName: "MinigamesMenuScene" });
 }
 
@@ -645,7 +667,7 @@ function selectWinner(params) {
     },
   };
   console.log("Winner is : " + id);
-  sentToAllClients(room, json);
+  sendToAllClients(room, json);
   delete rooms[room];
   console.log("Game in room " + room + " is finito !");
 }
@@ -679,7 +701,7 @@ function startGame(params) {
     },
   };
 
-  sentToAllClients(room, json);
+  sendToAllClients(room, json);
 
   sendPlayersList(room);
 }
