@@ -382,7 +382,7 @@ function changeScreen(params) {
   const room = params.code;
   const screenName = params.screenName;
 
-  if (screenName == null || screenName == "") return;
+  if (screenName == null || screenName == undefined || screenName == "") return;
 
   const json = {
     type: "changedScreen",
