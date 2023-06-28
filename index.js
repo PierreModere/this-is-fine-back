@@ -294,6 +294,7 @@ wss.on("connection", function connection(ws) {
         ws.send(JSON.stringify(json));
 
         console.log(`Player ${playerID} in room ${room} is reconnected !`);
+        console.log(`${rooms[room].currentScene}-${rooms[room].currentScreen}`);
       }
     }
   }
