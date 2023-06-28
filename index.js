@@ -270,7 +270,8 @@ wss.on("connection", function connection(ws) {
       if (rooms[room].filter((client) => client.id == playerID).length > 0) {
         const client = rooms[room].filter((client) => client.id == playerID)[0];
 
-        console.log(rooms[room]);
+        const currentScene = rooms[room].currentScene;
+        const currentScreen = rooms[room].currentScreen;
 
         ws["room"] = room;
         ws.id = client.id;
@@ -290,7 +291,7 @@ wss.on("connection", function connection(ws) {
           type: "hasBeenInARoom",
           params: {
             data: {
-              message: `${rooms[room].currentScene}-${rooms[room].currentScreen}`,
+              message: `${currentScene}-${currentScreen}`,
             },
           },
         };
